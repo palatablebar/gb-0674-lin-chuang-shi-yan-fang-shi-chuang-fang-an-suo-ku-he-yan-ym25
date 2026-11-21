@@ -16,11 +16,12 @@ def evaluate(payload=None, until=7, snapshot=None):
     context=deepcopy(snapshot['context']) if snapshot is not None else json.loads((ROOT/'sample_data/context.json').read_text())
     context.update(deepcopy(payload.get('overrides',{})))
     start=time.perf_counter()
-    state={'raw_bytes':raw,'context':context,'records':[],'quarantine':[], 'counts':{},'views':{},'source':dataset}
+    feed=snapshot.get('feed','custom') if snapshot is not None else ('custom' if 'csv_text' in payload else dataset)
+    state={'raw_bytes':raw,'context':context,'records':[],'quarantine':[], 'counts':{},'views':{},'source':dataset,'feed':feed}
     for index,key in enumerate(MODULES,1):
         if index>until: break
         import_module(f'app.modules.{key}.rules').apply(state)
-    state['input_snapshot']={'bytes_b64':base64.b64encode(raw).decode(),'context':deepcopy(context)}
+    state['input_snapshot']={'bytes_b64':base64.b64encode(raw).decode(),'context':deepcopy(context),'feed':feed}
     state.pop('raw_bytes',None)
     state['manifest']=make_manifest(digest(raw,context),dataset,time.perf_counter()-start)
     return state

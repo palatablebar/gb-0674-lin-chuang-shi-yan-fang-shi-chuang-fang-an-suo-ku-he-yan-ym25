@@ -13,7 +13,17 @@ docker compose exec -T app pytest -q
 
 各模块页面对应 `/<模块英文名>`，各模块执行入口为 `POST /api/<模块英文名>`，不传参即可独立演示。完整运行 `POST /api/runs` 支持 `dataset`（dirty/clean/legacy）、`csv_text` 与 `overrides` 参数。批次历史 `GET /api/runs`，详情 `GET /api/runs/{run_id}`。
 
-同输入与规则版本生成相同批号，只保留一条批次。复核入口 `POST /api/runs/{run_id}/review` 提交当前 `revision`，陈旧提交409。归档包只有一个下载入口 `GET /api/export/{run_id}`，含证据和运行摘要。原始隔离在页面同屏显示。
+同输入与规则版本生成相同批号，只保留一条批次。复核入口 `POST /api/runs/{run_id}/review` 提交当前 `revision`，陈旧提交409。归档包只有一个下载入口 `GET /api/export/{run_id}`，含证据、运行摘要和双签/锁库依据。原始隔离在页面同屏显示。
+
+## 双签与锁库
+
+- `GET /api/runs/{run_id}/signoff` 返回当前候选批次、依据摘要、两位复核人各自核对的批次与差异、阻断原因和锁库状态。
+- `POST /api/runs/{run_id}/signoff` 提交 `reviewer`、`opinion`（同意/不同意）、`basis_hash` 与当前 `revision`。依据或版本过期返回409，需刷新重看。
+- 双签成立 = 两位不同复核人在同一 `run_id`、同一批次摘要、同一依据摘要上均同意，且锁库闸门通过。只认同一份依据上的签署，不采用“最早确认”补齐。
+- 同一复核人重复提交同一意见不新增签署；改判会更新原签署。
+- 同一上游来源出现新批次时，旧批次的双签与正式锁库立即失效但保留可查；必须在新批次上重新双签，未形成新双签前不放行。
+- 任一方在页面看到批次或依据变化即标为“需重看/已失效”并列出差异，必须重新确认。
+- 正式锁库、页面和 `signoff.json`/`manifest.json` 共用同一份候选批次与依据摘要。
 
 SQLite使用命名卷，容器重启后保留历史。要重建演示可在Compose中改用新的卷名称，保留旧卷。
 

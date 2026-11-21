@@ -29,6 +29,9 @@
 | TRAP-15 | 检验单位换算 | 静默错算或证据丢失 | 以可复核规则显式处理 | `app/modules/protocol/rules.py` | `tests/test_protocol.py::test_unit_conversion_real` |
 | TRAP-23 | 访视窗末端 | 静默错算或证据丢失 | 以可复核规则显式处理 | `app/modules/windows/rules.py` | `tests/test_windows.py::test_half_open_end` |
 | TRAP-11 | UTC日历归一 | 静默错算或证据丢失 | 以可复核规则显式处理 | `app/modules/windows/rules.py` | `tests/test_windows.py::test_utc_day_equivalence` |
+| TRAP-26 | 两人在不同批次各自签署 | 页面显示双签完成但两人从未核对同一批 | 双签绑定同一批次摘要+依据摘要，旧批次签署标失效并要求重看 | `app/signoff.py`、`app/store.py` | `tests/test_signoff.py::test_different_reviewers_on_different_batches_never_dual` |
+| TRAP-27 | 上游补结果后旧双签继续放行 | 取最早确认或只比对人数 | 新批次到达即失效旧双签与正式锁库，须在新批次重新双签 | `app/store.py::save`、`app/main.py` | `tests/test_signoff.py::test_upstream_update_invalidates_old_lock_and_requires_new_dual` |
+| TRAP-28 | 同一意见重复提交刷签署 | 每次 POST 都新增签署 | 唯一约束按批次/依据/复核人去重，同意见重试不新增 | `app/store.py::record_signoff` | `tests/test_signoff.py::test_same_opinion_retry_does_not_add_signature` |
 
 ## 对账规则
 
